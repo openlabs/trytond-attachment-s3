@@ -39,7 +39,7 @@ class Attachment(ModelSQL, ModelView):
                 filename = attachment.digest
                 if attachment.collision:
                     filename = filename + '-' + str(attachment.collision)
-                filename = ":".join([db_name, filename])
+                filename = "/".join([db_name, filename])
                 bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
                 if name == 'data_size':
                     key = bucket.get_key(filename)
@@ -67,7 +67,7 @@ class Attachment(ModelSQL, ModelView):
             digest = hashlib.md5(data).hexdigest()
         else:
             digest = md5.new(data).hexdigest()
-        filename = ":".join([db_name, digest])
+        filename = "/".join([db_name, digest])
         collision = 0
         if bucket.get_key(filename):
             key2 = Key(bucket)
@@ -81,7 +81,7 @@ class Attachment(ModelSQL, ModelView):
                 collision2 = 0
                 for row in cursor.fetchall():
                     collision2 = row[0]
-                    filename = ":".join([
+                    filename = "/".join([
                         db_name, digest + '-' + str(collision2)
                     ])
                     if bucket.get_key(filename):
@@ -93,7 +93,7 @@ class Attachment(ModelSQL, ModelView):
                             break
                 if collision == 0:
                     collision = collision2 + 1
-                    filename = ":".join([
+                    filename = "/".join([
                         db_name, digest + '-' + str(collision)
                     ])
                     key = Key(bucket)
