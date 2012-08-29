@@ -63,16 +63,16 @@ class Attachment(ModelSQL, ModelView):
         bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
 
         if hashlib:
-            digest = hashlib.md5(data).hexdigest()
+            digest = hashlib.md5(value).hexdigest()
         else:
-            digest = md5.new(data).hexdigest()
+            digest = md5.new(value).hexdigest()
         filename = "/".join([db_name, digest])
         collision = 0
         if bucket.get_key(filename):
             key2 = Key(bucket)
             key2.key = filename
             data2 = key2.get_contents_as_string()
-            if data != data2:
+            if value != data2:
                 cursor.execute('SELECT DISTINCT(collision) FROM ir_attachment ' \
                         'WHERE digest = %s ' \
                             'AND collision != 0 ' \
@@ -87,7 +87,7 @@ class Attachment(ModelSQL, ModelView):
                         key2 = Key(bucket)
                         key2.key = filename
                         data2 = key2.get_contents_as_string()
-                        if data == data2:
+                        if value == data2:
                             collision = collision2
                             break
                 if collision == 0:
