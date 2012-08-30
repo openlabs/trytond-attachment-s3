@@ -47,7 +47,7 @@ class Attachment(ModelSQL, ModelView):
                 else:
                     k = Key(bucket)
                     k.key = filename
-                    value = k.get_contents_as_string()
+                    value = buffer(k.get_contents_as_string())
             res[attachment.id] = value
         return res
 
