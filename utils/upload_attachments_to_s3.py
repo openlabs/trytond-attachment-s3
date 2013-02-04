@@ -5,7 +5,7 @@
 
     Uploads the existing attachments in a data folder to S3
 
-    :copyright: (c) 2012 by Openlabs Technologies & Consulting (P) Limited
+    :copyright: (c) 2012-2013 by Openlabs Technologies & Consulting (P) Limited
     :license: BSD, see LICENSE for more details.
 """
 import os
@@ -46,7 +46,7 @@ def upload(connection, bucket, data_path, database, new_db_name=None):
                 continue
 
             s3_object = Key(bucket)
-            s3_object.key = "%s:%s" % (new_db_name, filename)
+            s3_object.key = "%s/%s" % (new_db_name, filename)
             s3_object.set_contents_from_filename(filepath)
 
             counter['uploaded'] += 1
