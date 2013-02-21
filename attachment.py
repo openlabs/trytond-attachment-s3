@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-'''
-    trytond_attachment_s3
+"""
+    attachment
 
-    :copyright: (c) 2012 by Openlabs Technologies & Consulting (P) Ltd.
-    :license: GPLv3, see LICENSE for more details
-'''
+    Send attachments to S3
+
+    :copyright: © 2012-2013 by Openlabs Technologies & Consulting (P) Limited
+    :license: BSD, see LICENSE for more details.
+"""
+
 try:
     import hashlib
 except ImportError:
@@ -16,43 +19,57 @@ from boto.s3.connection import S3Connection
 
 from trytond.config import CONFIG
 from trytond.transaction import Transaction
-from trytond.model import ModelView, ModelSQL
+from trytond.pool import PoolMeta
+
+__all__ = ['Attachment']
+__metaclass__ = PoolMeta
 
 
-class Attachment(ModelSQL, ModelView):
-    """Attachment
-    """
-    _name = 'ir.attachment'
+class Attachment:
+    "Attachment"
+    __name__ = 'ir.attachment'
 
-    def get_data(self, ids, name):
-        res = {}
+    def get_data(self, name):
+        """
+        Get the data from S3 instead of filesystem.
+        The filename is built as '<DBNAME>/<FILENAME>' in the given S3 bucket
+
+        :param name: name of field name
+        :return: Buffer of the file binary
+        """
         db_name = Transaction().cursor.dbname
         format_ = Transaction().context.pop('%s.%s' % (self._name, name), '')
         s3_conn = S3Connection(
             CONFIG['s3_access_key'], CONFIG['s3_secret_key']
         )
-        for attachment in self.browse(ids):
-            value = None 
+        value = None
+        if name == 'data_size' or format_ == 'size':
+            value = 0
+        if self.digest:
+            filename = self.digest
+            if self.collision:
+                filename = filename + '-' + str(self.collision)
+            filename = "/".join([db_name, filename])
+            bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
             if name == 'data_size' or format_ == 'size':
-                value = 0
-            if attachment.digest:
-                filename = attachment.digest
-                if attachment.collision:
-                    filename = filename + '-' + str(attachment.collision)
-                filename = "/".join([db_name, filename])
-                bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
-                if name == 'data_size' or format_ == 'size':
-                    key = bucket.get_key(filename)
-                    value = key.size
-                else:
-                    k = Key(bucket)
-                    k.key = filename
-                    value = buffer(k.get_contents_as_string())
-            res[attachment.id] = value
-        return res
+                key = bucket.get_key(filename)
+                value = key.size
+            else:
+                k = Key(bucket)
+                k.key = filename
+                value = buffer(k.get_contents_as_string())
+        return value
 
-    def set_data(self, ids, name, value):
-        if value is False or value is None:
+    @classmethod
+    def set_data(cls, attachments, name, value):
+        """
+        Save the attachment to S3 instead of the filesystem
+
+        :param attachments: List of ir.attachment instances
+        :param name: name of the field
+        :param value: binary data of the attachment (string)
+        """
+        if value is None:
             return
         cursor = Transaction().cursor
         db_name = cursor.dbname
@@ -73,10 +90,11 @@ class Attachment(ModelSQL, ModelView):
             key2.key = filename
             data2 = key2.get_contents_as_string()
             if value != data2:
-                cursor.execute('SELECT DISTINCT(collision) FROM ir_attachment ' \
-                        'WHERE digest = %s ' \
-                            'AND collision != 0 ' \
-                        'ORDER BY collision', (digest,))
+                cursor.execute('SELECT DISTINCT(collision) '
+                    'FROM ir_attachment '
+                    'WHERE digest = %s '
+                        'AND collision != 0 '
+                    'ORDER BY collision', (digest,))
                 collision2 = 0
                 for row in cursor.fetchall():
                     collision2 = row[0]
@@ -102,9 +120,7 @@ class Attachment(ModelSQL, ModelView):
             key = Key(bucket)
             key.key = filename
             key.set_contents_from_string(value)
-        self.write(ids, {
+        cls.write(attachments, {
             'digest': digest,
             'collision': collision,
-            })
-
-Attachment()
+        })
