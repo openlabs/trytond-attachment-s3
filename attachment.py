@@ -37,10 +37,14 @@ class Attachment:
         :param name: name of field name
         :return: Buffer of the file binary
         """
-        db_name = Transaction().cursor.dbname
-        format_ = Transaction().context.pop('%s.%s' % (self._name, name), '')
         s3_conn = S3Connection(
             CONFIG['s3_access_key'], CONFIG['s3_secret_key']
+        )
+        bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
+
+        db_name = Transaction().cursor.dbname
+        format_ = Transaction().context.pop(
+            '%s.%s' % (self.__name__, name), ''
         )
         value = None
         if name == 'data_size' or format_ == 'size':
@@ -50,7 +54,6 @@ class Attachment:
             if self.collision:
                 filename = filename + '-' + str(self.collision)
             filename = "/".join([db_name, filename])
-            bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
             if name == 'data_size' or format_ == 'size':
                 key = bucket.get_key(filename)
                 value = key.size
@@ -69,15 +72,15 @@ class Attachment:
         :param name: name of the field
         :param value: binary data of the attachment (string)
         """
-        if value is None:
-            return
-        cursor = Transaction().cursor
-        db_name = cursor.dbname
-
         s3_conn = S3Connection(
             CONFIG['s3_access_key'], CONFIG['s3_secret_key']
         )
         bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
+
+        if value is None:
+            return
+        cursor = Transaction().cursor
+        db_name = cursor.dbname
 
         if hashlib:
             digest = hashlib.md5(value).hexdigest()
