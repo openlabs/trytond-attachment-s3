@@ -6,9 +6,8 @@ import os
 from setuptools import setup
 import ConfigParser
 
-requires = [
-    'boto'
-]
+requires = ['boto']
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -25,11 +24,17 @@ minor_version = int(minor_version)
 
 for dep in info.get('depends', []):
     if not re.match(r'(ir|res|webdav)(\W|$)', dep):
-        requires.append('trytond_%s >= %s.%s, < %s.%s' %
-                (dep, major_version, minor_version, major_version,
-                    minor_version + 1))
-requires.append('trytond >= %s.%s, < %s.%s' %
-        (major_version, minor_version, major_version, minor_version + 1))
+        requires.append(
+            'trytond_%s >= %s.%s, < %s.%s' % (
+                dep, major_version, minor_version,
+                major_version, minor_version + 1,
+            )
+        )
+requires.append(
+    'trytond >= %s.%s, < %s.%s' % (
+        major_version, minor_version, major_version, minor_version + 1
+    )
+)
 
 setup(
     name='trytond_attachment_s3',
@@ -45,8 +50,8 @@ setup(
         'trytond.modules.attachment_s3.tests',
     ],
     package_data={
-        'trytond.modules.attachment_s3': info.get('xml', []) \
-            + ['tryton.cfg', 'locale/*.po', '*.odt', 'icons/*.svg'],
+        'trytond.modules.attachment_s3': info.get('xml', []) +
+            ['tryton.cfg', 'locale/*.po', '*.odt', 'icons/*.svg'],
     },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
