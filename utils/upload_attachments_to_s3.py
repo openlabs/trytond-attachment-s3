@@ -15,6 +15,7 @@ from optparse import OptionParser
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
+
 def upload(connection, bucket, data_path, database, new_db_name=None):
     """
     :param connection: The Amazon S3 connection
@@ -62,8 +63,8 @@ def upload(connection, bucket, data_path, database, new_db_name=None):
 
 if __name__ == '__main__':
     parser = OptionParser(
-        usage="usage: %prog [options]" + \
-             " access_key secret_key bucket data_path db_name"
+        usage="usage: %prog [options]" +
+            " access_key secret_key bucket data_path db_name"
     )
     parser.add_option("-n", "--new-db-name", dest="new_db_name",
         help="New database name to prefix to the files", default=None)
