@@ -72,11 +72,11 @@ requires.append(
 setup(
     name='trytond_attachment_s3',
     version=info.get('version', '0.0.1'),
-    description=info.get('description', ''),
+    description='Amazon S3 backend for Tryton Attachments',
     long_description=read('README.md'),
     author='Openlabs Technologies & Consulting (P) Limited',
     author_email=info.get('email', ''),
-    url=info.get('website', ''),
+    url='https://github.com/openlabs/trytond-attachment-s3',
     package_dir={'trytond.modules.attachment_s3': '.'},
     packages=[
         'trytond.modules.attachment_s3',
