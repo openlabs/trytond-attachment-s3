@@ -63,8 +63,9 @@ def upload(connection, bucket, data_path, database, new_db_name=None):
 
 if __name__ == '__main__':
     parser = OptionParser(
-        usage="usage: %prog [options]" +
+        usage="usage: %prog [options]" + (
             " access_key secret_key bucket data_path db_name"
+        )
     )
     parser.add_option("-n", "--new-db-name", dest="new_db_name",
         help="New database name to prefix to the files", default=None)
