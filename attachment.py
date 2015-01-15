@@ -16,6 +16,7 @@ except ImportError:
 
 from boto.s3.key import Key
 from boto.s3.connection import S3Connection
+from boto.exception import S3ResponseError
 
 from trytond.config import CONFIG
 from trytond.transaction import Transaction
@@ -28,6 +29,14 @@ __metaclass__ = PoolMeta
 class Attachment:
     "Attachment"
     __name__ = 'ir.attachment'
+
+    @classmethod
+    def __setup__(cls):
+        super(Attachment, cls).__setup__()
+
+        cls._error_messages.update({
+            "no_such_key": "File: %s with Key: %s doesn't exist in S3 bucket"
+        })
 
     def get_data(self, name):
         """
@@ -56,11 +65,18 @@ class Attachment:
             filename = "/".join([db_name, filename])
             if name == 'data_size' or format_ == 'size':
                 key = bucket.get_key(filename)
-                value = key.size
+                if key is not None:
+                    # Get the size only if bucket has key;
+                    value = key.size
             else:
                 k = Key(bucket)
                 k.key = filename
-                value = buffer(k.get_contents_as_string())
+                try:
+                    value = buffer(k.get_contents_as_string())
+                except S3ResponseError:
+                    self.raise_user_error(
+                        "no_such_key", error_args=(self.name, filename)
+                    )
         return value
 
     @classmethod
