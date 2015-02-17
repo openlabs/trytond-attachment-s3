@@ -5,7 +5,7 @@
     Add S3Binary field which automatically sends the file to S3 instead of
     storing in filesystem
 
-    :copyright: © 2013 by Openlabs Technologies & Consulting (P) Limited
+    :copyright: © 2013-2015 by Openlabs Technologies & Consulting (P) Limited
     :license: BSD, see LICENSE for more details.
 """
 import logging
@@ -14,7 +14,7 @@ from boto.s3.key import Key
 from boto.exception import S3ResponseError
 from boto.s3.connection import S3Connection
 from trytond.model import fields
-from trytond.config import CONFIG
+from trytond.config import config
 from trytond.transaction import Transaction
 
 
@@ -54,9 +54,10 @@ class S3Binary(fields.Function):
         Return an S3 bucket for the current instance
         '''
         s3_conn = S3Connection(
-            CONFIG['s3_access_key'], CONFIG['s3_secret_key']
+            config.get('attachment_s3', 'access_key'),
+            config.get('attachment_s3', 'secret_key')
         )
-        return s3_conn.get_bucket(CONFIG['data_s3_bucket'])
+        return s3_conn.get_bucket(config.get('attachment_s3', 'bucket_name'))
 
     @classmethod
     def get_filename(cls, model, record_id):
