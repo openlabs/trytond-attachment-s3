@@ -4,7 +4,7 @@
 
     Send attachments to S3
 
-    :copyright: © 2012-2013 by Openlabs Technologies & Consulting (P) Limited
+    :copyright: © 2012-2015 by Openlabs Technologies & Consulting (P) Limited
     :license: BSD, see LICENSE for more details.
 """
 
@@ -18,7 +18,7 @@ from boto.s3.key import Key
 from boto.s3.connection import S3Connection
 from boto.exception import S3ResponseError
 
-from trytond.config import CONFIG
+from trytond.config import config
 from trytond.transaction import Transaction
 from trytond.pool import PoolMeta
 
@@ -47,9 +47,10 @@ class Attachment:
         :return: Buffer of the file binary
         """
         s3_conn = S3Connection(
-            CONFIG['s3_access_key'], CONFIG['s3_secret_key']
+            config.get('attachment_s3', 'access_key'),
+            config.get('attachment_s3', 'secret_key')
         )
-        bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
+        bucket = s3_conn.get_bucket(config.get('attachment_s3', 'bucket_name'))
 
         db_name = Transaction().cursor.dbname
         format_ = Transaction().context.pop(
@@ -89,9 +90,10 @@ class Attachment:
         :param value: binary data of the attachment (string)
         """
         s3_conn = S3Connection(
-            CONFIG['s3_access_key'], CONFIG['s3_secret_key']
+            config.get('attachment_s3', 'access_key'),
+            config.get('attachment_s3', 'secret_key')
         )
-        bucket = s3_conn.get_bucket(CONFIG.options['data_s3_bucket'])
+        bucket = s3_conn.get_bucket(config.get('attachment_s3', 'bucket_name'))
 
         if value is None:
             return
