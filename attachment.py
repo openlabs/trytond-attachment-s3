@@ -65,7 +65,7 @@ class Attachment:
                 filename = filename + '-' + str(self.collision)
             filename = "/".join([db_name, filename])
             if name == 'data_size' or format_ == 'size':
-                key = bucket.get_key(filename)
+                key = bucket.lookup(filename)
                 if key is not None:
                     # Get the size only if bucket has key;
                     value = key.size
