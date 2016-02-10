@@ -46,6 +46,9 @@ class Attachment:
         :param name: name of field name
         :return: Buffer of the file binary
         """
+        if not config.has_section('attachment_s3'):
+            return super(Attachment, self).get_data(name)
+
         s3_conn = S3Connection(
             config.get('attachment_s3', 'access_key'),
             config.get('attachment_s3', 'secret_key')
@@ -89,6 +92,9 @@ class Attachment:
         :param name: name of the field
         :param value: binary data of the attachment (string)
         """
+        if not config.has_section('attachment_s3'):
+            return super(Attachment, cls).set_data(attachments, name, value)
+
         s3_conn = S3Connection(
             config.get('attachment_s3', 'access_key'),
             config.get('attachment_s3', 'secret_key')
